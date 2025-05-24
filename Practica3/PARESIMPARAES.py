@@ -5,6 +5,8 @@ B = 1
 while B <= 1:
     try:
         numero = int(input("Introduce un numero entero: "))
+        if numero < 0:
+            raise ValueError("No se permiten números negativos.")
     
         if  numero % 2 == 0:
             print(numero, "ingresaste un numero par.")
@@ -14,4 +16,5 @@ while B <= 1:
         print("Error: Se ingreso una un valor que no es numero entero.")
     finally:
         print("Siguelo intentando :) ")
+    
         
