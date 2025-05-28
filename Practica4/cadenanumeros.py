@@ -13,4 +13,4 @@ while B <=1 :
     except ValueError:
         print("Ingresaste un valor que no es un numero negativo.")
     finally:
-        print("Realmente lo infinito no tiene Fin???")
+        print("Realmente lo infinito no tiene Fin??")
