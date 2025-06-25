@@ -28,6 +28,21 @@ def home():
         return render_template('formulario.html', errores={}, albums = [])
     finally:
         cursor.close()
+        
+#Rura de detalle
+@app.route('/detalle/<int:id>')
+def detalle(id):
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM tb_album WHERE id = %s', (id,))
+        consultaId = cursor.fetchone()
+        return render_template('consulta.html', album = consultaId)
+    
+    except Exception as e:
+        print('Error al consultar por id: ' + e)
+        return redirect(url_for('home'))
+    finally:
+        cursor.close()
     
 #ruta para probar la conección a mysql
 @app.route('/DBCheck')
