@@ -43,7 +43,71 @@ def detalle(id):
         return redirect(url_for('home'))
     finally:
         cursor.close()
+
+@app.route('/editar/<int:id>')
+def editar(id):
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM tb_album WHERE id = %s', (id,))
+    album = cursor.fetchone()
+    cursor.close()
     
+    if album is None:
+        flash('Álbum no encontrado')
+        return redirect(url_for('home'))
+    
+    return render_template('formUpdate.html', album=album)
+
+@app.route('/actualizar/<int:id>', methods=['POST'])
+def actualizar(id):
+    album = request.form['TxtTitulo']
+    artista = request.form['TxtArtista']    
+    anio = request.form['TxtAnio']
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute("""
+        UPDATE tb_album
+        SET album = %s, artista = %s, anio = %s
+        WHERE id = %s
+    """, (album, artista, anio, id))
+    mysql.connection.commit()
+    cursor.close()
+    
+    flash('Album Actualizado en la BD')
+    
+    errores = {}
+    if not album:
+        errores['TxtTitulo'] = 'El título del álbum es obligatorio'
+    if not artista:
+        errores['TxtArtista'] = 'El artista es obligatorio'
+    if not anio:
+        errores['TxtAnio'] = 'El año es obligatorio'
+    elif not anio.isdigit() or int(anio) < 1800 or int(anio) > 2030:
+        errores['TxtAnio'] = 'Ingresa un año válido (entre 1800 y 2030)'
+
+    # Si hay errores, volver al formulario con los mensajes
+    if errores:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM tb_album WHERE id = %s', (id,))
+        album = cursor.fetchone()
+        cursor.close()
+        return render_template('formUpdate.html', album=album, errores=errores)
+
+    # Si no hay errores, actualizar en la BD
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute("""
+            UPDATE tb_album
+            SET album = %s, artista = %s, anio = %s
+            WHERE id = %s
+        """, (album, artista, anio, id))
+        mysql.connection.commit()
+        flash('Álbum actualizado correctamente', 'success')
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'Error al actualizar: {str(e)}', 'danger')
+    finally:
+        cursor.close()
+    return redirect(url_for('home'))
 #ruta para probar la conección a mysql
 @app.route('/DBCheck')
 def DB_check():
