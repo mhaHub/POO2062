@@ -19,7 +19,7 @@ mysql = MySQL(app)
 def home():
     try:
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM tb_album')
+        cursor.execute('SELECT * FROM tb_album WHERE state = 1')
         consultaTodo = cursor.fetchall()
         return render_template('formulario.html', errores={}, albums = consultaTodo)
     
@@ -34,7 +34,7 @@ def home():
 def detalle(id):
     try:
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM tb_album WHERE id = %s', (id,))
+        cursor.execute('SELECT * FROM tb_album WHERE id = %s AND state = 1', (id,))
         consultaId = cursor.fetchone()
         return render_template('consulta.html', album = consultaId)
     
@@ -47,7 +47,7 @@ def detalle(id):
 @app.route('/editar/<int:id>')
 def editar(id):
     cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM tb_album WHERE id = %s', (id,))
+    cursor.execute('SELECT * FROM tb_album WHERE id = %s AND state = 1', (id,))
     album = cursor.fetchone()
     cursor.close()
     
@@ -59,60 +59,87 @@ def editar(id):
 
 @app.route('/actualizar/<int:id>', methods=['POST'])
 def actualizar(id):
-    album = request.form['TxtTitulo']
-    artista = request.form['TxtArtista']    
-    anio = request.form['TxtAnio']
-    
-    cursor = mysql.connection.cursor()
-    cursor.execute("""
-        UPDATE tb_album
-        SET album = %s, artista = %s, anio = %s
-        WHERE id = %s
-    """, (album, artista, anio, id))
-    mysql.connection.commit()
-    cursor.close()
-    
-    flash('Album Actualizado en la BD')
-    
+    # 1. Recoger datos del formulario
+    album = request.form.get('TxtTitulo', '').strip()
+    artista = request.form.get('TxtArtista', '').strip()
+    anio = request.form.get('TxtAnio', '').strip()
+
+    # 2. Validar datos
     errores = {}
+
     if not album:
         errores['TxtTitulo'] = 'El título del álbum es obligatorio'
     if not artista:
         errores['TxtArtista'] = 'El artista es obligatorio'
     if not anio:
-        errores['TxtAnio'] = 'El año es obligatorio'
-    elif not anio.isdigit() or int(anio) < 1800 or int(anio) > 2030:
-        errores['TxtAnio'] = 'Ingresa un año válido (entre 1800 y 2030)'
+        errores['TxtAnio'] = 'El Año es obligatorio'
+    else:
+        try:
+            anio_int = int(anio)
+            if anio_int < 1800 or anio_int > 2030:
+                errores['TxtAnio'] = 'Ingresa un año válido (entre 1800 y 2030)'
+        except ValueError:
+            errores['TxtAnio'] = 'El año debe ser un número válido'
 
-    # Si hay errores, volver al formulario con los mensajes
+    # 3. Si hay errores, volver al formulario con errores
     if errores:
         cursor = mysql.connection.cursor()
         cursor.execute('SELECT * FROM tb_album WHERE id = %s', (id,))
-        album = cursor.fetchone()
+        album_data = cursor.fetchone()
         cursor.close()
-        return render_template('formUpdate.html', album=album, errores=errores)
+        return render_template('formUpdate.html', album=album_data, errores=errores)
 
-    # Si no hay errores, actualizar en la BD
+    # 4. Si no hay errores, actualizar en la base de datos
     try:
         cursor = mysql.connection.cursor()
         cursor.execute("""
             UPDATE tb_album
             SET album = %s, artista = %s, anio = %s
             WHERE id = %s
-        """, (album, artista, anio, id))
+        """, (album, artista, anio_int, id))
         mysql.connection.commit()
-        flash('Álbum actualizado correctamente', 'success')
+        flash('Álbum actualizado en la BD')
     except Exception as e:
         mysql.connection.rollback()
         flash(f'Error al actualizar: {str(e)}', 'danger')
     finally:
         cursor.close()
+
+    return redirect(url_for('home'))
+
+#Ruta para confirmar eliminacion
+@app.route('/confirmar_eliminar/<int:id>')
+def confirmar_eliminar(id):
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM tb_album WHERE id = %s AND state = 1', (id,))
+    album = cursor.fetchone()
+    cursor.close()
+
+    if album is None:
+        flash('Álbum no encontrado')
+        return redirect(url_for('home'))
+
+    return render_template('confirmDel.html', album=album)
+#Ruta para eliminar
+@app.route('/eliminar/<int:id>', methods = ['POST'])
+def eliminar_album(id):
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute('UPDATE tb_album SET state = 0 WHERE id = %s', (id,))
+        mysql.connection.commit()
+        flash('Album eliminado correctamente.')
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'Error al eliminar: {str(e)}', 'danger')
+    finally:
+        cursor.close()
+        
     return redirect(url_for('home'))
 #ruta para probar la conección a mysql
 @app.route('/DBCheck')
 def DB_check():
     try:
-        cursor= mysql.connection.cursor()
+        cursor= mysql.connection.cursor()   
         cursor.execute('Select 1')
         return jsonify( {'status':'ok','message':'Conectado con exito'} ), 200
     except MySQLdb.MySQLError as e:

@@ -24,7 +24,7 @@
                 <td>{{ album.2 }}</td>
                 <td>{{ album.3 }}</td>
                 <td> <a href="/editar/{{ album.0 }}">Actualizar </a></td>
-                <td> <a href="#">Eliminar </a></td>
+                <td> <a href="{{ url_for('confirmar_eliminar', id=album.0) }}">Eliminar </a></td>
             </tr>
         </tbody>
     </table>

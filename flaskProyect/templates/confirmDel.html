@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmar Eliminación</title>
+</head>
+<body>
+    <h2>Confirmar Eliminación de Álbum</h2>
+
+    <form action="{{ url_for('eliminar_album', id=album.0) }}" method="post">
+        <input type="text" name="TxtTitulo" value="{{ album.1 }}" disabled>
+        <input type="text" name="TxtArtista" value="{{ album.2 }}" disabled>
+        <input type="number" name="TxtAnio" value="{{ album.3 }}" disabled>
+
+        <p>¿Seguro que eliminaras?</p>
+
+        <button type="submit">Sí, Eliminar</button>
+        <a href="{{ url_for('home') }}">Cancelar</a>
+    </form>
+</body>
+</html>
