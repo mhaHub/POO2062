@@ -1,0 +1,88 @@
+{% extends 'plantilla.html' %}
+
+{% block body %}
+
+<div class="row">
+    <div class="col-md-5">
+        <h2 class="display-4 text-primary mt-5 mb-5"> Vista de formulario</h2>
+        <a href="{{ url_for('albums.consulta') }}"" class="btn btn-secondary mb-3"> Abrir Vista Consulta</a> 
+
+        {% with mensajes= get_flashed_messages()%}
+            {% if mensajes%}
+                {% for msj in mensajes%}
+                    <div class="alert alert-info" role="alert">
+                        <h4>{{ msj }}</h4>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith%}
+
+        <form action="/guardarAlbum" method="post">
+
+            <div class="mb-3">
+                <input type="text" name="txtTitulo" placeholder="Titulo" value="{{ request.form.txtTitulo}}" class="form-control"> 
+                {% if errores and errores.txtTitulo %}
+                <p class="text-danger mt-1">{{ errores.txtTitulo }}</p> 
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <input type="text" name="txtArtista" placeholder="Artista" value="{{ request.form.txtArtista}}" class="form-control"> 
+                {% if errores and errores.txtArtista %}
+                <p class="text-danger mt-1">{{ errores.txtArtista }}</p> 
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <input type="number" name="txtAnio" placeholder="Año de publicacion" value="{{ request.form.txtAnio}}" class="form-control">
+                {% if errores and errores.txtAnio %}
+                <p class="text-danger mt-1">{{ errores.txtAnio }}</p> 
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success"> Guardar Album</button>
+            </div>
+            
+        </form>
+
+    </div> <div class="col-md-7">
+        <h2 class="mb-4" style="color:blueviolet;">Albums Guardados</h2>
+        
+        
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th> 
+                        <th scope="col">Album</th> 
+                        <th scope="col">Artista</th> 
+                        <th scope="col">Año</th>
+                        <th scope="col">Acciones</th> 
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for alb in albums %}
+                    <tr>
+                        <td>{{ alb.0 }}</td>
+                        <td><a href="/detalle/{{ alb.0 }}">{{ alb.1 }}</a></td>
+                        <td>{{ alb.2 }}</td> 
+                        <td>{{ alb.3 }}</td> 
+                        <td>
+                            <a href="{{url_for('albums.editar', id = alb.0) }}" class="btn btn-warning btn-sm">Editar</a>
+                            <a href="{{url_for('albums.eliminar', id = alb.0) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar este álbum?')">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not albums %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No hay álbumes guardados.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+    </div> </div>
+{% endblock %}

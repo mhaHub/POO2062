@@ -42,12 +42,7 @@ def DB_check():
         cursor.execute('Select 1')
         return jsonify( {'status':'ok','message':'Conectado con exito'} ), 200
     except MySQLdb.MySQLError as e:
-        return jsonify( {'status':'error','message':str(e)} ), 200
-
-
-@app.route('/consulta')
-def consulta():
-    return render_template('consulta.html')'''
+        return jsonify( {'status':'error','message':str(e)} ), 200'''
 
 #Ruta para la Insert
 

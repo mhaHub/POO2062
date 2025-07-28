@@ -1,0 +1,53 @@
+{% extends 'plantilla.html' %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-6 offset-3">
+        <h2 class="display-4 text-primary mt-5 mb-4 text-center">Actualiza Album</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}    
+            {% endif %}
+        {% endwith %}
+
+        <form  action="{{ url_for('albums.actualizar', id=album['id']) }}" method="post">
+            <div class="mb-3">
+                <label for="txtTitulo" class="form-label">Titulo: </label>
+                <input type="text" name="txtTitulo" class="form-control" placeholder="Titulo" value="{{ album['album'] if album else '' }}">
+                {% if errores and 'txtTitulo' in errores %}
+                    <p class="text-danger mt-1">{{ errores['txtTitulo'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="txtArtista" class="form-label">Artista: </label>
+                <input type="text" name="txtArtista" class="form-control"  placeholder="Artista" value="{{ album['artista'] if album else '' }}">
+                {% if errores and 'txtArtista' in errores %}
+                    <p class="text-danger mt-1">{{ errores['txtArtista'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="txtAnio" class="form-label">Año: </label>
+                <input type="number" name="txtAnio" class="form-control"  placeholder="Año de publicacion" value="{{ album['anio'] if album else '' }}">
+                {% if errores and 'txtAnio' in errores %}
+                    <p class="text-danger mt-1">{{ errores['txtAnio'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success">Actualizar Album</button>
+            </div>
+        </form>
+
+        <br>
+        <a href="/" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+    </div>
+</div>
+{% endblock %}
